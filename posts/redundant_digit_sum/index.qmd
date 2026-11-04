@@ -1,0 +1,217 @@
+---
+title: "Sum of Decimal Digits of a Large Binary Number"
+description: "Finding the sum of decimal digits of a large number supplied in binary form via a redundant binary representation"
+date: 2026-11-03
+categories: [algorithms, C++, number theory]
+bibliography: references.bib
+---
+
+## The Problem
+
+Imagine you had a very large binary number, and you wanted to find the sum of its digits in a decimal expansion. The number is too large to store in any of your language's integer types, so direct evaluation is not feasible. So, how do you do it?
+
+A standard solution would be to use something like Horner's method. I, however, came up with another approach. While it is slower than the standard approach, as I will show further (same complexity as Horner's method, but a larger constant factor), it is very interesting and actually connects to some other ideas in computer science.
+
+## The Goal
+
+How do we normally find the sum of digits for a given number? Here's how:
+```{.cpp filename="digit_sum.cpp"}
+auto digit_sum(unsigned int num) -> unsigned int {
+    unsigned int res = 0;
+    while (num > 0) {
+        res += num % 10;
+        num /= 10;
+    }
+    return res;
+}
+```
+
+Easy – but it means that we have to have `num`{.cpp} already calculated! No standard fixed-width integer type in C++ (and many other languages) can store such an enormous number as, say, $2^{1000}$. To solve the problem without cheesing it (using arbitrary-precision arithmetic), we must replace the standard operations in the algorithm above with smarter custom logic!
+
+## Mathematical Insight
+
+My first intuition was to find a trick that would allow me to efficiently divide a power of 2 by 10. If we are able to do that, solving the problem for a general binary number is almost trivial. I noticed that 10 is close to $8 = 2^3$, and the difference, $10-8=2$, is also itself a power of 2. The result is a neat equality:
+$$
+    \forall n \geq 3: 2^n = 8 \cdot 2^{n-3} = (10-2) \cdot 2^{n-3} = 10 \cdot 2^{n-3} - 2^{n-2}
+$$
+
+Hence, for $k = 10m+q$, with $m, q \in \mathbb{Z}$ and $0 \leq q \leq 9$,
+$$
+    \left\lfloor\frac{k \cdot 2^n}{10}\right\rfloor = m \cdot 2^n + \left\lfloor\frac{10q \cdot 2^{n-3} - q \cdot 2^{n-2}}{10}\right\rfloor
+$$
+
+In other words, we can divide a multiple of power of 2 by 10 via pushing down the problem to lower powers of 2. But notice how, if we apply the division iteratively (as the algorithm requires), we inadvertently create a whole chain of powers of 2. 
+
+Idea: in order to solve the problem, we should learn how to maintain this kind of chain of powers of 2, i.e.
+
+1. how to know the last digit of the sum,
+
+2. how to divide it by 10, and
+
+3. how to know if we should stop trying to add more digits.
+
+So, I realised that we want to solve the problem of decimal operations on so-called "redundant binary representations". Although I did not know the name of such a data structure when I came up with the solution, knowing the connection to actual academic literature is always nice.
+
+::: {.callout-note title="Definition"}
+A **redundant binary representation (RBR)** is an array of integers that represents elements of $\mathbb{Z}[2]$. More concretely, all possible RBR of integer $x$ form a set
+$$
+    R_2(x) = \left\{a = (a_0, \ldots, a_N): N \in \mathbb{N}, \ a_i \in \mathbb{Z}, \ \sum_{i=0}^N a_i 2^i = x \right\}
+$$
+
+In other words, unlike ordinary binary notation, the digits are not restricted to $\{0,1\}$.
+::: 
+
+RBR can make certain operations, such as addition and subtraction, significantly faster in certain applications, while making others quite complex. For more details, refer to @HeubergerProdinger2001 and @KornerupMatula2010.
+
+## Key Implementation Steps
+
+Let's now discuss the 3 implementation key points we have to cover:
+
+#### 1. How to know the last digit of an RBR?
+
+Note that if we write the last digit in a decimal expansion of a number as $\delta(x)$, the last digit of an RBR of integer $x$ is
+$$
+    \delta(x) = \delta\Bigl(\delta(a_n \cdot 2^n) + \ldots + \delta(a_0)\Bigr),
+$$
+where $x = a_n \cdot 2^n + \ldots + a_0$. What makes it even simpler is that
+$$
+    \delta(a_n \cdot 2^n) = \delta(a_n \cdot \delta(2^n))
+$$
+– we get $\delta(2^n)$ pretty much for free, as the last digits of powers of 2 cycle as 
+$$
+    1 \to 2 \to 4 \to 8 \to 6 \to 2 \to 4 \to 8 \to 6 \to 2 \to \ldots.
+$$
+
+#### 2. How to divide an RBR by 10?
+
+Using the formula from before (in part "Mathematical Insight"), if we write $D(x) := \left\lfloor \frac{x}{10} \right\rfloor$,
+$$
+    n \geq 3, \quad m_n:= D(a_n), \quad q_n := \delta(a_n) \implies
+$$
+\begin{align}
+    \implies D(x) = m_n \cdot 2^n + D\Bigl(
+        &a_{n-1} \cdot 2^{n-1} +
+        \\
+        &+ (a_{n-2} - q_n) \cdot 2^{n-2} +
+        \\
+        &+ (a_{n-3} + 10q_n) \cdot 2^{n-3} +
+        \\
+        &+ a_{n-4} \cdot 2^{n-4} + \ldots\Bigr)
+\end{align}
+
+So, we reduce the coefficient in front of the largest power of 2, and push the residual to coefficients of lower powers. Note how what is left to divide is again a linear combination of powers of 2 with lower maximum power – this means we can continue doing the same transformation with powers $(n-1)$, $(n-2)$, and so on. When we hit powers $n<3$, we can already just calculate the result directly.
+
+#### 3. How to know we have summed up all descimal digits of a binary number?
+
+Normally this would be trivial – we stop the loop when our initial number, after all the transformations, hits 0. This, however, is not so simple when we use RBR. The linear combination can be 0 even when coefficients are not 0, if it's reducible (e.g., $1 \cdot 2^1 - 2 \cdot 2^0 = 0$). Because we cannot calculate the number itself, we can't verify $x==0$ cheaply.
+
+But notice that even when $x$ is 0, one extra step of the basic algorithm cannot change the sum, we can only add 0. So, we simply stop as soon as we are guaranteed to have summed up all digits. This means that if we are solving the problem for $2^N$, we need
+$$
+    \left\lfloor \log_{10} 2^N \right\rfloor +1 = \left\lfloor N \log_{10} 2 \right\rfloor + 1
+$$
+iterations at most – equal to the number of digits given the highest power.
+
+For a general binary (non-redundant) number, the limit is different. For a binary number $x$ with highest power of 2 at $N$, we have $x < 2^{N+1}$, so the upper limit on digits becomes $\left\lceil (N + 1) \log_{10} 2 \right\rceil$.
+
+What may be concerning is that both calculation of the logarithm and multiplication with the float value are approximate on computers, so it is possible that the limit, as it is nearly exact, can be under-estimated. In this case the float operations should be replaced with integer ones that are more conservative. One such estimate is $\left\lfloor \frac{N}{3} \right\rfloor + 1$ for any binary number, which uses $\log_{10} 2 < \frac{1}{3}$. Adding extra iterations does not hurt correctness and keeps the time complexity at the same level, but it does increase the actual execution time.
+
+#### The Algorithm
+
+With that in mind, the algorithm works like this:
+
+* Set $N$ as the highest power of 2 in the binary number
+
+* Construct an RBR from the binary number
+
+* Run a loop for the number of iterations that is set as in point 3
+
+* On each iteration, find the last digit of current RBR, add it to the cumulative, and divide the RBR by 10 in place
+
+    + To get the last digit, run the loop through all powers, collecting the modulo cumulative as described in point 1
+
+    + To divide by 10 in place, apply the approach described in point 2 (also a loop over all powers)
+
+* Return the cumulative of last digits from each iteration
+
+## Implementation Sample
+
+Here is how an RBR with arithmetic modulo 10 can be written in C++, as well as the implementation for the algorithm on powers of 2:
+
+```{.cpp filename="rbr_digit_sum_pow2.cpp"}
+#include <array>
+#include <cstddef>
+#include <stdexcept>
+
+auto floormod(long long num) -> int {
+    return static_cast<int>(((num % 10) + 10) % 10);
+}
+
+template <size_t max_power> struct RedundantBinaryRepresentation {
+    // account for low powers:
+    static constexpr size_t storage_size = max_power < 2 ? 3 : max_power + 1;
+    std::array<long long, storage_size> coefficients{};
+
+    auto addCoefficientToPower(unsigned int power, long long coef) {
+        if (power > max_power) {
+            throw std::invalid_argument(
+                "cannot access power higher than max_power");
+        }
+        this->coefficients[power] += coef;
+    }
+
+    auto divideBy10InPlace() {
+        for (size_t i = max_power; i >= 3; --i) {
+            long long coef = this->coefficients[i];
+            int resid = floormod(coef);
+            this->coefficients[i] = (coef - resid) / 10;
+            this->coefficients[i - 3] += 10 * resid;
+            this->coefficients[i - 2] -= resid;
+        }
+        long long remainder = (4 * this->coefficients[2]) +
+                              (2 * this->coefficients[1]) +
+                              this->coefficients[0];
+        this->coefficients[0] = (remainder - floormod(remainder)) / 10;
+        this->coefficients[1] = 0;
+        this->coefficients[2] = 0;
+    }
+
+    auto findLastDigit() -> unsigned int {
+        long long total_residual = floormod(this->coefficients[0]);
+        unsigned int digit = 1;
+        for (size_t i = 1; i <= max_power; ++i) {
+            digit = (digit * 2) % 10;
+            total_residual += this->coefficients[i] * digit;
+            total_residual %= 10;
+        }
+        if (total_residual < 0) total_residual += 10;
+        return static_cast<unsigned int>(total_residual);
+    }
+};
+
+template <size_t power> auto sumDigitsPowerOf2() -> long long {
+    long long res = 0;
+    RedundantBinaryRepresentation<power> powers;
+    powers.addCoefficientToPower(power, 1);
+    // conservative upper limit, for numerical stability:
+    size_t num_digits = static_cast<size_t>(power / 3) + 1;
+    for (size_t i = 0; i < num_digits; ++i) {
+        res += powers.findLastDigit();
+        powers.divideBy10InPlace();
+    }
+    return res;
+}
+```
+
+Floormod was used here due to how mod works in C++ with negative numbers, as the coefficients may become negative during divisions by 10 in an RBR of a positive number.
+
+I should note that in general this RBR struct may work incorrectly, as it does not account for potential overflow of the `long long`{.cpp} coefficients. However, because we start with only standard binary representations (each coefficient is either 0 or 1) and keep the coefficients in a fixed size window (applying mod 10 on each iteration helps to achieve this), we cannot have overflow in this case. But the issue this detail points us to is that with fixed-width integer types for RBR coefficients, we cannot actually store an arbitrary RBR. More so, any general redundant number system (any radix, not only 2) cannot be fully represented via fixed-width integer types. One way one may attempt to mitigate this issue is to use arbitrary size integers for coefficients – this, however, would make the entire exersise meaningless. So, my proposed approach makes sense as long as we remain in the realm of "small-digit" RBRs, which includes all numbers in binary form.
+
+## Complexity
+
+Let us consider the implementation above and discuss its time complexity.
+
+To find the sum of decimal digits of $2^N$, we have to do a loop of length $O(N)$, each iteration of which calls `findLastDigit()`{.cpp} and `divideBy10InPlace()`{.cpp} – both of these also do a loop of length $O(N)$ inside. Thus, the total complexity is $O(N^2)$ – same as something like the Horner's method. However, the solution requires more actions per step, such as repeated additional `% 10`{.cpp} and double-looping. Although it achieves the desired complexity, it still is more of a neat mathematical insight, rather than a "revolutionary"/extremely efficient algorithm.
+
+## Conclusion
+
+The write-up was in no way a proposal of a new efficient implementation, but more so an exploration of several interesting concepts in number theory and number representations. Having constructed the algorithm above, I got quite interested in the topic of enhancing algorithms via special number systems (with applications in evolutionary methods, cryptography and general computing), as well as utilising broader ideas of abstract algebra in algorithms. I am still researching these ideas and may write about some of the results in this blog later on.

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE language [
+  <!-- A conventional C++ identifier. -->
+  <!ENTITY ident "[A-Za-z_][A-Za-z0-9_]*">
+
+  <!--
+    Optional template arguments.
+
+    This intentionally accepts nested angle brackets heuristically. KDE and
+    Skylighting syntax definitions are lexical highlighters, not complete
+    C++ parsers.
+  -->
+  <!ENTITY targs "(?:&lt;[^;{}()\n]*>\s*)?">
+
+  <!-- One component of a qualified name, such as std:: or vector&lt;int&gt;::. -->
+  <!ENTITY qualpart "&ident;\s*&targs;::\s*">
+
+  <!-- What must follow an identifier for us to classify it as a function. -->
+  <!ENTITY calltail "(?=\s*&targs;\()">
+
+  <!--
+    Words which may legally be followed by '(' but should not receive the
+    Function style. This includes C++ keywords and common built-in/standard
+    type aliases.
+  -->
+  <!ENTITY nonfunction "(?:FILE|alignas|alignof|and|and_eq|asm|auto|bitand|bitor|bool|break|case|catch|char|char8_t|char16_t|char32_t|class|co_await|co_return|co_yield|compl|concept|const|const_cast|consteval|constexpr|constinit|continue|contract_assert|decltype|default|defined|delete|do|double|dynamic_cast|else|enum|explicit|export|extern|false|final|float|for|friend|goto|if|import|inline|int|int8_t|int16_t|int32_t|int64_t|int_fast8_t|int_fast16_t|int_fast32_t|int_fast64_t|int_least8_t|int_least16_t|int_least32_t|int_least64_t|intmax_t|intptr_t|long|module|mutable|namespace|new|noexcept|not|not_eq|nullptr|operator|or|or_eq|override|private|protected|ptrdiff_t|public|register|reinterpret_cast|requires|return|short|signed|sig_atomic_t|size_t|sizeof|ssize_t|static|static_assert|static_cast|struct|switch|template|this|thread_local|throw|time_t|true|try|typedef|typeid|typename|uint8_t|uint16_t|uint32_t|uint64_t|uint_fast8_t|uint_fast16_t|uint_fast32_t|uint_fast64_t|uint_least8_t|uint_least16_t|uint_least32_t|uint_least64_t|uintmax_t|uintptr_t|union|unsigned|using|va_list|virtual|void|volatile|wchar_t|while|wint_t|xor|xor_eq|fpos_t)">
+
+]>
+
+<language
+    name="cpp-functions"
+    section="Sources"
+    version="1"
+    kateversion="5.79"
+    extensions="*.cpp-functions"
+    mimetype="text/x-c++src"
+    style="C++"
+    author="Project-local Quarto syntax definition"
+    license="MIT">
+
+  <highlighting>
+    <contexts>
+
+      <!--
+        This is the initial context.
+
+        Our rules are evaluated first. Anything they do not recognize is
+        delegated to Pandoc/Skylighting's bundled C++ grammar.
+      -->
+      <context
+          name="Main"
+          attribute="Normal Text"
+          lineEndContext="#stay">
+
+        <!--
+          Qualified functions:
+
+              std::sort(...)
+              project::detail::calculate(...)
+              Widget&lt;int&gt;::create(...)
+
+          lookAhead means that the initial RegExpr captures the components
+          without consuming them. QualifiedFunction then assigns different
+          styles to the qualifier and the final function name.
+        -->
+        <RegExpr
+            context="QualifiedFunction"
+            String="((?:&qualpart;)+)((?!&nonfunction;\b)&ident;)&calltail;"
+            lookAhead="true"/>
+
+        <!--
+          Unqualified functions, methods, constructors and callable objects:
+
+              calculate(...)
+              object.run(...)
+              pointer->reset(...)
+              Widget(...)
+        -->
+        <RegExpr
+            attribute="Function"
+            context="#stay"
+            String="(?!&nonfunction;\b)&ident;&calltail;"/>
+
+        <!-- Delegate everything else to the bundled C++ definition. -->
+        <IncludeRules
+            context="##C++"
+            includeAttrib="true"/>
+
+      </context>
+
+      <!--
+        The previous RegExpr captures:
+
+          %1 = namespace/type qualification, including ::
+          %2 = final function identifier
+      -->
+      <context
+          name="QualifiedFunction"
+          attribute="Normal Text"
+          lineEndContext="#pop">
+
+        <StringDetect
+            attribute="Qualifier"
+            context="#stay"
+            String="%1"
+            dynamic="true"/>
+
+        <StringDetect
+            attribute="Function"
+            context="#pop"
+            String="%2"
+            dynamic="true"/>
+
+      </context>
+
+    </contexts>
+
+    <itemDatas>
+      <!-- Use theme-defined styles rather than hard-coded colors. -->
+      <itemData
+          name="Normal Text"
+          defStyleNum="dsNormal"
+          spellChecking="false"/>
+
+      <itemData
+          name="Qualifier"
+          defStyleNum="dsBuiltIn"
+          spellChecking="false"/>
+
+      <itemData
+          name="Function"
+          defStyleNum="dsFunction"
+          spellChecking="false"/>
+    </itemDatas>
+  </highlighting>
+
+  <general>
+    <comments>
+      <comment
+          name="singleLine"
+          start="//"
+          position="afterwhitespace"/>
+      <comment
+          name="multiLine"
+          start="/*"
+          end="*/"/>
+    </comments>
+
+    <keywords
+        casesensitive="1"
+        additionalDeliminator="#&quot;"/>
+  </general>
+
+</language>

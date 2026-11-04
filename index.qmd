@@ -1,0 +1,31 @@
+---
+title: "Nikita Kliuchnikov"
+about:
+  template: solana
+  links:
+    - icon: github
+      text: GitHub
+      href: https://github.com/NickLithan
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/nikita-kliuchnikov-086b5a295
+    - icon: envelope
+      text: Email
+      href: mailto:nikita.kliuchnikov@uzh.ch
+---
+
+## Bio
+
+I'm an MA Finance student at UZH and a special student at MSc Quantitative Finance at ETH. I have had broad academic and professional experience in mathematics, finance, programming and machine learning. I focus on topics in probability theory and its various applications. I'm currently working toward a career in quantitative research. My CV can be found on a dedicated page.
+
+This site collects several kinds of writing:
+
+- **BA Thesis** — overview of my undergraduate thesis on applying classic market microstructure to modern decentralized markets.
+- **Research Notes** — small theoretical and empirical results in pure mathematics, ML and quantitative finance that are yet to be developed into complete research papers.
+- **Posts** — everything else: write-ups for coding problems, reading notes, and miscellaneous ideas.
+
+## Research interests
+
+- Probability theory and Stochastic processes
+- Applications of ML and pure mathematics to Quantitative finance
+- Statistical estimation and Decision-making under uncertainty

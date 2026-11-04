@@ -1,0 +1,153 @@
+/*-- scss:defaults --*/
+
+// Base neutrals (required — used by rgba() helpers below)
+$white: #fff;
+$black: #000;
+
+// Darkened neutral scale
+$gray-100: #f1f3f5;
+$gray-200: #dce2e9;
+$gray-300: #c2cad4;
+$gray-400: #a5afbc;
+$gray-500: #8993a1;
+$gray-600: #697482;
+$gray-700: #4b5663;
+$gray-800: #303742;
+$gray-900: #20242c;
+
+// Cosmo-inspired blue and semantic colors
+$blue:    #3478c1;
+$indigo:  #8270cc;
+$purple:  #a277ba;
+$pink:    #d96b98;
+$red:     #c44159;
+$orange:  #c27a36;
+$yellow:  #be852f;
+$green:   #4b914b;
+$teal:    #388e76;
+$cyan:    #9d72b9;
+
+$primary:   $blue;
+$secondary: #46515e;
+$success:   #3f8547;
+$info:      #79529b;
+$warning:   #a96722;
+$danger:    #b63850;
+$light:     #303742;
+$dark:      #171b21;
+
+$min-contrast-ratio: 4.5;
+
+// Page colors and surfaces
+$body-bg:              #20242c;
+$body-color:           #dbe1e9;
+$body-emphasis-color:  #f4f6f8;
+$body-secondary-color: #adb6c3;
+$body-tertiary-color:  #8e98a6;
+$body-secondary-bg:    #282e37;
+$body-tertiary-bg:     #303742;
+$border-color:         #414a56;
+$border-color-translucent: rgba($white, .12);
+
+$headings-color: $body-emphasis-color;
+$link-color: #8abaff;
+$link-hover-color: #b6d3ff;
+
+// Inline code and fenced code blocks
+$code-bg: #2e3440;
+$code-color: #f8f8f2;
+$code-block-bg: #2e3440;
+
+// Forms
+$input-bg: $body-secondary-bg;
+$input-color: $body-color;
+$input-border-color: $border-color;
+$input-placeholder-color: $body-tertiary-color;
+$input-focus-bg: $input-bg;
+$form-select-indicator-color: $body-color;
+
+// Common component surfaces
+$card-bg: $body-secondary-bg;
+$card-color: $body-color;
+$card-border-color: $border-color;
+
+$dropdown-bg: $body-secondary-bg;
+$dropdown-color: $body-color;
+$dropdown-border-color: $border-color;
+$dropdown-link-hover-bg: $body-tertiary-bg;
+
+$popover-bg: $body-secondary-bg;
+$popover-border-color: $border-color;
+
+$modal-content-bg: $body-secondary-bg;
+$modal-content-color: $body-color;
+$modal-content-border-color: $border-color;
+
+$list-group-bg: $body-secondary-bg;
+$list-group-color: $body-color;
+$list-group-border-color: $border-color;
+
+$progress-bg: $body-tertiary-bg;
+
+// Tables
+$table-color: $body-color;
+$table-bg: transparent;
+$table-border-color: $border-color;
+$table-striped-bg: rgba($white, .035);
+$table-hover-bg: rgba($white, .06);
+$table-active-bg: rgba($white, .09);
+
+// Quarto navigation, sidebars, and TOC
+$navbar-bg: #171b21;
+$navbar-fg: #e6eaf0;
+$navbar-hl: #b6d3ff;
+
+$sidebar-bg: #252b34;
+$sidebar-fg: $body-color;
+$sidebar-hl: $link-color;
+
+$footer-bg: #191d24;
+$footer-fg: $body-secondary-color;
+
+$toc-color: $body-secondary-color;
+$toc-active-border: $link-color;
+$toc-inactive-border: $border-color;
+
+// Callout accents
+$callout-color-note:      #6fa9f2;
+$callout-color-tip:       #71c27a;
+$callout-color-caution:   #e5a15a;
+$callout-color-warning:   #e9bd54;
+$callout-color-important: #ee7182;
+
+// Keyboard focus
+$focus-ring-width: .25rem;
+$focus-ring-opacity: .45;
+$focus-ring-color: rgba(#9bc4ff, $focus-ring-opacity);
+
+
+/*-- scss:rules --*/
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+body.quarto-dark {
+  color-scheme: dark;
+}
+
+// Cosmo's original badge rule uses $dark for this text; use readable text
+// against the darkened $light background instead.
+.badge.bg-light {
+  color: $body-color;
+}
+
+mark {
+  color: $body-color;
+  background-color: rgba($yellow, .25);
+}
+
+::selection {
+  color: $white;
+  background-color: rgba($primary, .5);
+}

@@ -1,0 +1,49 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Nikita Kliuchnikov"
+  description: "Notes on personal research and research insights."
+  navbar:
+    left:
+      - href: index.qmd
+        text: About
+      - href: ba_thesis/index.qmd
+        text: Bachelor Thesis
+      - href: research/index.qmd
+        text: Research Notes
+      - href: posts/index.qmd
+        text: Insights
+    right:
+      - icon: github
+        href: https://github.com/NickLithan
+      - icon: linkedin
+        href: https://www.linkedin.com/in/nikita-kliuchnikov-086b5a295/
+  site-url: "https://NickLithan.github.io/blog/"
+  llms-txt: true
+  favicon: images/logo.png
+
+format:
+  html:
+    theme:
+      light: [cosmo, themes/cosmo-light.scss]
+      dark:  [cosmo, themes/cosmo-dark.scss]
+    css: styles.css
+    toc: true
+    syntax-highlighting: 
+      light: themes/monokai-light.theme
+      dark: monokai
+    syntax-definitions:
+      - _syntax/cpp-functions.xml # define what C++ function is
+    respect-user-color-scheme: true
+    # smooth-scroll: true
+    # include-after-body: 
+    #   patches/no_dark_mode_scroll.html
+
+filters:
+  - quarto
+  - _filters/cpp-functions.lua # apply C++ function syntax to .cpp
+
+execute:
+  freeze: auto

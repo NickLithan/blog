@@ -1,0 +1,4 @@
+# Shared metadata for all documents in research/
+author: "Nikita Kliuchnikov"
+title-block-banner: false
+freeze: auto

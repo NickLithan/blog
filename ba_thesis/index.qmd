@@ -1,0 +1,16 @@
+---
+title: "Can Market Microstructure Metrics Enhance Rug Pull Detection?"
+subtitle: "Bachelor Thesis"
+---
+
+## Abstract
+
+While rug pulls are among the biggest threats in cryptocurrency markets, only a few of studies have attempted to build early detection models for malicious tokens. I conducted a comprehensive rug pull prediction study on Solana’s Raydium DEX, testing whether market microstructure measures can enhance identification of malicious coins.
+
+With 32,426 token launches analyzed, I conducted an A/B test on model performance before and after adding 8 features, including Kyle’s lambda, Amihud's illiquidity, VPIN and others. The analysis suggests that these features can lead to an incremental, yet statistically significant improvement in performance, partly consistent with microstructure theory. The robustness of these results was validated across multiple model architectures, hyperparameter configurations and labeling strategies.
+
+![](https://github.com/NickLithan/Rug-Pull-Early-Detection--Bachelor-Thesis-/blob/main/visuals/shap_target1/shap_target1_scatter_cb.png?raw=true){fig-alt="SHAP Scatter Plots of Market Microstructure Features" fig-align="center" width=100%}
+
+## Full text
+
+You can view the full text of the thesis on my [GitHub page](https://github.com/NickLithan/Rug-Pull-Early-Detection--Bachelor-Thesis-/blob/main/Thesis.pdf). Or [download the PDF directly](https://raw.githubusercontent.com/NickLithan/Rug-Pull-Early-Detection--Bachelor-Thesis-/4b24f606024ac9dbfaf8c89a6f0e64e820ec6ac8/Thesis.pdf). (Only the first couple of pages are in Russian, the rest is in English.)
