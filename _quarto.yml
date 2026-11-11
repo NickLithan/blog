@@ -15,6 +15,8 @@ website:
         text: Research Notes
       - href: posts/index.qmd
         text: Insights
+      - href: cv/index.qmd
+        text: CV
     right:
       - icon: github
         href: https://github.com/NickLithan
@@ -37,6 +39,7 @@ format:
     syntax-definitions:
       - _syntax/cpp-functions.xml # define what C++ function is
     respect-user-color-scheme: true
+    callout-icon: false
     # smooth-scroll: true
     # include-after-body: 
     #   patches/no_dark_mode_scroll.html

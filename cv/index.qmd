@@ -1,0 +1,7 @@
+---
+title: "CV"
+---
+
+```{=html}
+<embed src="cv.pdf" />
+```
