@@ -1,7 +1,22 @@
 ---
 title: "CV"
+format:
+  html:
+    page-layout: full
+resources:
+  - cv.pdf
 ---
 
+[Download PDF](cv.pdf){.btn .btn-outline-primary download="cv.pdf"} $\,$ [Open PDF in new tab](cv.pdf){.btn .btn-primary target="_blank" rel="noopener"}
+
 ```{=html}
-<embed src="cv.pdf" />
+<div class="pdf-container">
+  <iframe
+    src="cv.pdf#view=FitH&toolbar=1"
+    title="CV (PDF preview)"
+    loading="lazy"
+    class="pdf-embed"
+    style="pointer-events: none;">
+  </iframe>
+</div>
 ```
