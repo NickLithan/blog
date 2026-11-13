@@ -4,6 +4,8 @@ description: "Reproducing de Finetti-Kolmogorov-Nagumo generalized mean generato
 date: 2026-11-11
 categories: [probability, statistics, ML]
 bibliography: references.bib
+resources:
+  - distr.png
 ---
 
 ## Introduction
@@ -18,7 +20,7 @@ The idea came to me when I was working on an income prediction problem. The char
 
 This distribution is generally not nice: it is highly skewed, with a very heavy right tail and significant excess kurtosis. Additionally, we see a sharp drop off in density at 300k, yet with some exceptional observations above that threshold. Clearly, some data pre-processing issues, such as flawed filtering, were at play.
 
-The best-fit distribution turned out to be a double Pareto-lognormal (dPlN) one. It can be achieved by having the tails of a lognormal distribution be rescaled by independent Pareto-distributed factors. Interestingly enough, this is exactly the distribution of the value of a geometric Brownian motion at an exponentially-weighted time [@ReedJorgensen2004]. Assuming an individual's income evolves as a geometric Brownian motion (for example, assume the income is determined by equity, and impose the assumptions of the Black-Scholes model on the equity market), and that our observation time of the income is exponentially-distributed relative to their "start of life" ($t_0$), dPlN is the exact distribution we would expect.
+The best-fit distribution turned out to be a double Pareto-lognormal (dPlN) one. It can be achieved by having the tails of a lognormal distribution be rescaled by independent Pareto-distributed factors. Interestingly enough, this is exactly the distribution of the value of a geometric Brownian motion at an exponentially-distributed time [@ReedJorgensen2004]. Assuming an individual's income evolves as a geometric Brownian motion (for example, assume the income is determined by equity, and impose the assumptions of the Black-Scholes model on the equity market), and that our observation time of the income is exponentially-distributed relative to their "start of life" ($t_0$), dPlN is the exact distribution we would expect.
 
 Either way, it was also difficult to predict this income given the data I had access to. Naturally, I set it up as a regression problem with MSE as the loss. The trained model was mostly predicting the train sample mean income – that is exactly what theory says is optimal for low-information models. However, occasionally it detected some actual anomalies in the data! So, while the model was mostly useless on its own, using its scores within an ensemble model could be very useful.
 
@@ -63,7 +65,7 @@ In other words, the approach described above may work for not only information-l
 The key problem in that algorithm is how step 1, noted by **[\*]**, can be implemented. Let's introduce some definitions and notation for what this problem is:
 
 ::: {.callout-note title="Definition 1 (Mean-Anchoring Transform)"}
-Assume an arbitrary random variable $X: \Omega \to \mathbb{R}$ and $m \in \mathbb{R}$. A **Mean-Anchoring transform** of $X$ with **anchor** $m$ is a measurable injection $g:\mathbb{R} \to \mathbb{R}$ such that
+Assume an arbitrary random variable $X: \Omega \to \mathbb{R}$ and $m \in \mathbb{R}$. A **Mean-Anchoring transform** of $X$ with **anchor** $m$ is a measurable injection $g:\mathbb{R} \to \mathbb{R}$ such that $g(X) \in L^1$ with
 $$
     \mathbb{E}[g(X)] = g(m).
 $$
@@ -79,12 +81,12 @@ Assume an arbitrary random variable $X: \Omega \to \mathbb{R}$. A **de Finetti-K
 $$
     M_g[X] := g^{-1}\left(\mathbb{E}[g(X)]\right),
 $$
-where $g:\mathbb{R} \to \mathbb{R}$ is a continuous and invertible on its range mapping.
+where $g:\mathbb{R} \to \mathbb{R}$ is a continuous injection.
 ::: 
 
 In this context, we can call $g$ a **generalized mean generator**. Note that $g \in \mathbf{MAT}[X, M_g]$. Thus,
 
-> The problem of identifying continuous Mean-Anchoring transforms is equivalent to reproducing the generator $g$ of the de Finetti-Kolmogorov-Nagumo generalized mean $m := M_g[X]$, given $X$ and $m$.
+> The problem of identifying continuous Mean-Anchoring transforms is equivalent to finding all admissible generators $g$ of the de Finetti-Kolmogorov-Nagumo generalized mean $m := M_g[X]$, given $X$ and $m$.
 
 I realized this reformulation after developing the theory of mean anchoring. Following the timeline of how I explored this topic, the connection to related literature will be noted at the end of this note.
 
@@ -99,7 +101,7 @@ $$
 $$
 ::: 
 
-This means that we can only consider transforms that make the mean equal to 0, and afterwards add a constant to shift the mean. Additionally, we can rescale the output to get specific variance (e.g., divide by standard deviation for standard scaling).
+Consequently, without loss of generality, we can restrict our search to transforms that make the mean equal to 0, and afterwards add a constant to shift the mean. Additionally, we can rescale the output to get specific variance (e.g., divide by standard deviation for standard scaling).
 
 I realised several things quite quickly:
 
@@ -122,7 +124,7 @@ For any non-trivial random variable $X$ and $m \in \mathbb{R}$, which is not an 
 
 ## Continuous Solutions: ReRe Transform
 
-Let us finally find the form MAT admits when we assume continuity. Following the steps I made deriving it, let's assume a <u>continuous</u> random variable $X$ and its internal point $m$.
+Let us finally find the form MAT admits when we assume continuity. Following the steps I made deriving it, let's assume a <u>continuous</u> random variable $X$ and its internal point $m$. This derivation will assume $X$ is contunuous, but the final statement and its proof do not require this.
 
 Due to closure under affine transforms, we can actually try and solve for 
 $$
@@ -167,7 +169,7 @@ Adding the fact that their difference is simply the expected value of $u(X)$, we
 $$
     \left\{\begin{array}{ll}
         L + R = \mathbb{E}|u(X)|\\
-        R - L = \mathbb{E}{u(X)}
+        R - L = \mathbb{E}[u(X)]
     \end{array}\right.
     \iff 
     \\
@@ -176,11 +178,9 @@ $$
         L = \frac{1}{2}(\mathbb{E}|u(X)| - \mathbb{E}[u(X)])\\
         R = \frac{1}{2}(\mathbb{E}|u(X)| + \mathbb{E}[u(X)])
     \end{array}\right.
-    \\
-    \implies 
 $$
 
-Due to the similarity between these expansions and closure under affine transforms, we can ignore the $\frac{1}{2}$ factors and rewrite $g$ in one line:
+Due to the similarity between these expansions and closure under affine transforms, we can ignore the constant factors and rewrite $g$ in one line:
 \begin{align}
     g(x) &= (\mathbb{E}|u(X)| - \text{sgn}(u(x)) \cdot \mathbb{E}[u(X)]) \cdot u(x)\\
     &= \mathbb{E}|u(X)| \cdot u(x) - \mathbb{E}[u(X)] \cdot |u(x)|
@@ -203,7 +203,7 @@ where $u$ is any strictly increasing continuous function such that $\mathbb{E}|u
 
 1. First of all, for any random variable $X$ there exists a strictly increasing continuous function such that $\mathbb{E}|u(X)| < \infty$ and $u(m) = 0$, as we can simply pick a bounded function such as $u(x) = \arctan(x - m)$. As there exists an internal point, $X$ is not trivial, so $\mathbb{E}|u(X)| > 0$. Additionally, as $m$ is internal,
 $$
-    \mathbb{P}(u(x) < 0) > 0 \ \And \ \mathbb{P}(u(x) > 0) > 0
+    \mathbb{P}(u(X) < 0) > 0 \ \And \ \mathbb{P}(u(X) > 0) > 0
     \\
     \implies |\mathbb{E}[u(X)]| < \mathbb{E}|u(X)|
 $$
@@ -240,8 +240,68 @@ If $g$ is strictly decreasing, set $b = -1$ and $u(x) = -(g(x) - g(m))$.
 
 ## Implications
 
+The theorem is quite powerful. It means that, given random variable $X$, if you provide **any** continuous strictly increasing function $u$ (such that ), it is possible to construct a corresponding mean anchoring transform for any internal point as anchor. Moreover, part 2 of the theorem, although quite tautological, guarantees that this construction procedure covers all possible continuous mean anchoring transforms and states the core equivalence idea.
+
+::: {.callout-note title="Definition 4 (Rescale-Rebalance (ReRe) Transform)"}
+Assume an arbitrary random variable $X: \Omega \to \mathbb{R}$, $m \in \mathbb{R}$ and a strictly increasing continuous function $u$ such that $u(m) = 0$ and $\mathbb{E}|u(X)| < \infty$. We call $u$ a **rescale function**. A corresponding **Rescale-Rebalance transform** is a strictly increasing continuous function $g:\mathbb{R} \to \mathbb{R}$ such that
+$$
+    g(x) = u(x) - \gamma |u(x)|, \ \gamma = \frac{\mathbb{E}[u(X)]}{\mathbb{E}|u(X)|} \in (-1, 1),
+$$
+where $\gamma$ is called a **rebalance factor**.
+::: 
+
+This also means that we get this result:
+
+::: {.callout-warning title="Proposition 3 (Implied Loss Functions)"}
+For any non-trivial random variable $X$ and its internal point $m \in \mathbb{R}$ we can construct such a loss function $L_X: \mathbb{R} \to \mathbb{R}$ that
+\DeclareMathOperator*{\argmin}{argmin}
+$$
+    \argmin_{x \in \mathbb{R}} L_X(x) = \{m\}
+$$
+from any continuous strictly increasing function $\tilde{u}$ such that $\mathbb{E}[\tilde{u}^2(X)] < \infty$:
+$$
+    L_X(x) := \mathbb{E}[(g(X) - g(x))^2],
+    \\
+    g(x) := u(x) - \gamma |u(x)|, \ \gamma := \frac{\mathbb{E}[u(X)]}{\mathbb{E}|u(X)|},
+    \\
+    u(x) := \tilde{u}(x) - \tilde{u}(m).
+$$
+::: 
+
 ## Related Literature
+
+This result has a direct connection to the theory of generalized means, as discussed above. The result tells us that we can, given a random variable $X$ and its generalized mean $M_g[X]$, reproduce the generator function $g$.
+
+This is particularly useful in the theory of utility functions. If an agent has a utility function $U$ and is faced with a lottery (random variable) $X$, the lottery's certainty equivalent is defined as
+$$
+    CE_U[X]: \ U(CE_U[X]) = \mathbb{E}[U(X)] \iff CE_U[X] = M_U[X]
+$$
+– thus, mean anchoring tells us that we can reproduce a utility function $U$, knowing a lottery $X$ and its certainty equivalent $CE_U[X]$. It is a nice result, as it means that if we conduct experiments, empirically estimating people's certainty equivalents for a given $X$ (which can be done, for example, through proposing to choose between a lottery and a guaranteed payout), we can limit the form a utility function can take, or even find its exact form under extra conditions. It also introduces a concept of over-identification within mean anchoring: if we have several lotteries and several estimates of their certainty equivalents, how can we assess what the utility function looks like?
+
+Additionally, the result provides us with an approach of loss function constructions, as described in proposition 3. Similarly to utility reproduction, mean anchoring can be used for various forms of an inverse problem. But there is also a potential to uncover some nice families of losses, that could enhance model training processes. The way this can be conducted, what rescale functions should be used, and other details are yet to be researched.
+
+Further connections, such as consistent scoring, elicitability and Bregman divergences, are to be explored in the future write-ups, and even more are to be found.
 
 ## Future Work
 
-## Conclusion
+### Conditional Mean Anchoring
+
+While mean anchoring guarantees that the center of mass of the entire distribution is mapped into the same point as any pre-selected anchor, it is, however, a non-local transformation. Thus, sometimes we may want conditional mean anchoring:
+
+::: {.callout-note title="Definition 5 (Conditional Mean-Anchoring Transform)"}
+Assume an arbitrary random variable $X: \Omega \to \mathbb{R}$, a collection $\mathcal{H} \subseteq \mathcal{B}(\mathbb{R})$ such that $\forall H \in \mathcal{H}: \mathbb{P}(X \in H) > 0$, and a mapping $m: \mathcal{H} \to \mathbb{R}$. A **Conditional Mean-Anchoring transform** of $X$ on $\mathcal{H}$ with an **anchor function** $m$ is a measurable injection $g:\mathbb{R} \to \mathbb{R}$ such that
+$$
+    \forall H \in \mathcal{H}: \ \mathbb{E}[g(X) | X \in H] = g(m(H)).
+$$
+The collection of all such mappings is written as $\mathbf{CMAT}[X,\mathcal{H},m]$.
+::: 
+
+I am currently working on this extension, with progress in cases of $\mathcal{H}$ being 1) an at most countable interval partitioning of $\mathbb{R}$, and 2) a finite collection of arbitrary Borel sets. Future research notes will cover these cases.
+
+### Statistical Properties of ReRe Transform
+
+The statements above concern population statistics, while the practical applications of mean anchoring require its sample analogue. The definition of sample ReRe transform, its statistical properties, and its utility, including the methods of estimating and applying the rebalance factor, will be discussed in future research notes.
+
+### Implementation
+
+Based on my first observations of statistical properties of sample ReRe transform, I constructed a demo implementation of it in Python, which can be found on a dedicated [GitHub page](https://github.com/NickLithan/rere-transform). Future work will be concerned with numerical stability, optimisation, scalability, and applications of future advances in my research into mean anchoring.
